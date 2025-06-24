@@ -1,8 +1,8 @@
 body {
     font: 20px "Gill Sans", Verdana, sans-serif;
     line-height: 1.8;
-    color: #197f7a;
-    background-color: #dcdcdc;
+    color: #ffffff;
+    background-color: #000000;
     padding-top: 0px !important;
   }
 
@@ -14,7 +14,8 @@ p {font-size: 16px;}
 .margin {margin-bottom: 30px;}
 
 a {
-  color: #000000;
+  color: #ffffff;
+  transition: width 2s;
 }
 
 .container-fluid {
@@ -23,7 +24,7 @@ a {
 }
 
 nav {
-  background-color: #a95454;
+  background-color: #3577d34b;
   color: #EEE7E8;
   padding: 50px 0px;
 }
@@ -31,13 +32,13 @@ nav {
 .navbar-nav {
   display: flex;
   justify-content: flex-start;
-  gap: 30px;
+  gap: 10px;
 }
 
 .nav-title{
   margin-left: 15px;
   margin-right: 15px;
-  color: #000000;
+  color: #0c4e77;
 }
 
 .nav-link {
@@ -62,7 +63,7 @@ nav {
   border-radius: 40px;
   padding: 10px 30px;
   background-color: #a3a3a3;
-  color: #000000;
+  color: #ffffff;
   transition: 0.3s;
 }
 
