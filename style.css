@@ -2,7 +2,7 @@ body {
     font: 20px "Gill Sans", Verdana, sans-serif;
     line-height: 1.8;
     color: #ffffff;
-    background-color: #000000;
+    background-color: #484848;
     padding-top: 0px !important;
   }
 
@@ -24,21 +24,21 @@ a {
 }
 
 nav {
-  background-color: #3577d34b;
-  color: #EEE7E8;
+  background-color: #00000064;
+  color: #ffffff;
   padding: 50px 0px;
 }
 
 .navbar-nav {
   display: flex;
   justify-content: flex-start;
-  gap: 10px;
+  gap: 50px;
 }
 
 .nav-title{
-  margin-left: 15px;
-  margin-right: 15px;
-  color: #0c4e77;
+  margin-left: 0px;
+  margin-right: 50px;
+  color: #ffffff;
 }
 
 .nav-link {
