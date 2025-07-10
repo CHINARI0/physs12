@@ -5,7 +5,6 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="../style.css" rel="stylesheet">
 
-
 <nav class="navbar navbar-expand-sm navbar-dark">
   <div style="align-items: center; justify-content: center;" class="container-fluid">
     <div class="flexrow">
@@ -25,10 +24,183 @@
 
 <h3>Week 4: Microcontroller Programming</h3>
 
-<h4>[Do Something with an arduino]</h4>
+<p class="margin"> </p>
 
+<h4>Arduino Card Thrower</h4>
 
+<p class="margin"> </p>
 
+<a> I decided to use my kinetic sculpture for this assignment. I wanted the circuit to send out a single card with each button press. To do this, I had to use a L9110 H Bridge Power Driver and a button. </a>
+
+<p class="margin"> </p>
+
+<image style = "height: 450px; width: 800px;" src = "./circuit.jpg"> </image>
+
+<p class="margin"> </p>
+
+<a> I connected the button to pin 33 and I initially connected the H Bridge to pins 12 and 14 (like on the drawing above). While coding the circuit, I realised that using pin 12 messes up with uploading to the esp32. In the end, I slightly modified the circuit above and built it like so: </a>
+
+<p class="margin"> </p>
+
+<image style = "height: 450px; width: 800px;" src = "./circuitIRL.jpg"> </image>
+
+<p class="margin"> </p>
+
+<a> With the circuit prepared, I started coding. I wanted to do this using the millis() function to avoid using delay and an excersize. Additionally, since I wanted to shoot out a single card, I thought moving the motor forward for some time and then reversing it to make sure only a single card is thrown out made sense. </a>
+
+<p class="margin"> </p>
+
+<pre><code class="language-arduino">//defining the pins
+const int buttonPin = 33;
+const int A1A = 14;
+const int A1B = 27; 
+
+int motorSpeed = 255; //the speed of the motor
+int buttonPressed = 0; //a variable to see if the button has been pressed recently
+int buttonState = 0; //a variable to write the current value of the button
+
+//definitions for using the millis() function
+unsigned long currentTime;
+unsigned long previousTime = 0;
+int motorForwardsInterval = 5000; //how long the motor will turn forwards for
+int motorBackwardsInterval = 1000; //how long the motor will turn forwards for
+
+//defining the parameters for using the ledc function
+int freq = 5000;
+int resolution = 8;
+
+void setup() {
+  pinMode(buttonPin, INPUT_PULLUP); //using INPUT_PULLUP to avoid using an unnecessary resistor
+  pinMode(A1A, OUTPUT); //setting the motor pins to be outputs
+  pinMode(A1B, OUTPUT); 
+  ledcAttach(A1A, freq, resolution); //setting up ledc
+  ledcWrite(A1A, 0); //stoping the motor
+}
+</code></pre> 
+
+<p class="margin"> </p>
+
+<a> For controlling the motor, I borrowed the code from the course website and very slightly modified it to fit what I wanted. </a>
+
+<p class="margin"> </p>
+
+<pre><code class="language-arduino">void motorA(int s, int d) {
+  if(d == 0){
+    ledcWrite(A1A, 255-s); 
+    digitalWrite(A1B, HIGH); 
+  } 
+  
+  else if (d == 1){
+    ledcWrite(A1A, s); 
+    digitalWrite(A1B, LOW);
+  }
+}
+</code></pre> 
+
+<p class="margin"> </p>
+
+<a> For the looping code, I used millis() and a bunch of if statements to control the motors with the motorA() function. I may have overcomplicated the code with an extra variable for the button, but it works exactly as I intended.</a>
+
+<p class="margin"> </p>
+
+<pre><code class="language-arduino">void loop() {
+  currentTime = millis();
+  if (buttonState == 1 && buttonPressed == 0) {
+    buttonPressed = 1;
+    buttonState = 0;
+    previousTime = currentTime;
+  }
+
+  else if (buttonPressed == 1) {
+    if (currentTime - previousTime < motorForwardsInterval) {
+      motorA(motorSpeed, 0);
+    }
+    else if (currentTime - previousTime < motorForwardsInterval + motorBackwardsInterval) {
+      motorA(motorSpeed, 1);
+    }
+    else {
+      buttonPressed = 0;
+      motorA(0, 1);
+    }
+  }
+
+  else {
+    buttonState = (digitalRead(buttonPin) == LOW);
+  }
+}
+</code></pre> 
+
+<p class="margin"> </p>
+
+<a> All in all, the code turned out like this; </a>
+
+<p class="margin"> </p>
+
+<pre><code class="language-arduino">//defining the pins
+const int buttonPin = 33;
+const int A1A = 14;
+const int A1B = 27; 
+
+int motorSpeed = 255; //the speed of the motor
+int buttonPressed = 0; //a variable to see if the button has been pressed recently
+int buttonState = 0; //a variable to write the current value of the button
+
+//definitions for using the millis() function
+unsigned long currentTime;
+unsigned long previousTime = 0;
+int motorForwardsInterval = 5000; //how long the motor will turn forwards for
+int motorBackwardsInterval = 1000; //how long the motor will turn forwards for
+
+//defining the parameters for using the ledc function
+int freq = 5000;
+int resolution = 8;
+
+void setup() {
+  pinMode(buttonPin, INPUT_PULLUP); //using INPUT_PULLUP to avoid using an unnecessary resistor
+  pinMode(A1A, OUTPUT); //setting the motor pins to be outputs
+  pinMode(A1B, OUTPUT); 
+  ledcAttach(A1A, freq, resolution); //setting up ledc
+  ledcWrite(A1A, 0); //stoping the motor
+}
+
+void loop() {
+  currentTime = millis();
+  if (buttonState == 1 && buttonPressed == 0) {
+    buttonPressed = 1;
+    buttonState = 0;
+    previousTime = currentTime;
+  }
+
+  else if (buttonPressed == 1) {
+    if (currentTime - previousTime < motorForwardsInterval) {
+      motorA(motorSpeed, 0);
+    }
+    else if (currentTime - previousTime < motorForwardsInterval + motorBackwardsInterval) {
+      motorA(motorSpeed, 1);
+    }
+    else {
+      buttonPressed = 0;
+      motorA(0, 1);
+    }
+  }
+
+  else {
+    buttonState = (digitalRead(buttonPin) == LOW);
+  }
+}
+
+void motorA(int s, int d) {
+  if(d == 0){
+    ledcWrite(A1A, 255-s); 
+    digitalWrite(A1B, HIGH); 
+  } 
+  
+  else if (d == 1){
+    ledcWrite(A1A, s); 
+    digitalWrite(A1B, LOW);
+  }
+}
+</code></pre> 
 
 
 </div>
