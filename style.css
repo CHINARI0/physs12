@@ -18,6 +18,11 @@ a {
   transition: width 2s;
 }
 
+.container-fluid {
+  padding: 0px;
+  /*padding-bottom: 70px;*/
+}
+
 pre {
   background-color: #2d2b33;
   line-height: 18px;
@@ -30,11 +35,6 @@ pre {
   border: 3px solid #ffffff;
   border-radius: 20px;
   
-}
-
-.container-fluid {
-  padding: 0px;
-  /*padding-bottom: 70px;*/
 }
 
 nav {
