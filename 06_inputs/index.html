@@ -25,9 +25,174 @@
 
 <h3>Week 6: Electronic Inputs</h3>
 
+<p class="margin">   </p>
+
 <h4>Assignment 1: Capactive Sensor<h4>
 
-<h4>Assignment 2: [Use + Calibrate Another Sensor]</h4>
+<p class="margin">   </p>
+
+<a>For my capacitive sensor, I made a tilt sensor by sticking 2 copper pieces on the same side of the bottle. I filled it with water enough that it could cover both copper pieces, but also enough that there was an air bubble which helped change the permittivity. </a>
+
+<p class="margin">   </p>
+
+<table style = "width: 500px;">
+  <tr>
+    <th>0 degrees</th>
+    <th>45 degrees</th>
+    <th>90 degrees</th>
+  </tr>
+  <tr><td>339405</td><td>341243</td><td>341721</td></tr>
+  <tr><td>339170</td><td>341523</td><td>341626</td></tr>
+  <tr><td>339111</td><td>340825</td><td>341488</td></tr>
+  <tr><td>338825</td><td>340478</td><td>341541</td></tr>
+  <tr><td>339346</td><td>340396</td><td>341775</td></tr>
+  <tr><td>339520</td><td>340464</td><td>341826</td></tr>
+  <tr><td>339751</td><td>340262</td><td>342253</td></tr>
+  <tr><td>339945</td><td>340384</td><td>342107</td></tr>
+  <tr><td>340275</td><td>340818</td><td>342291</td></tr>
+  <tr><td>339671</td><td>340957</td><td>342078</td></tr>
+  <tr><td>339414</td><td>341184</td><td>341973</td></tr>
+  <tr><td>339421</td><td>340891</td><td>341478</td></tr>
+</table>
+
+<video src = "./video.mp4" type="video/mp4"> </video>
+
+<p class="margin">   </p>
+
+<h4>Assignment 2: Camera</h4>
+
+<p class="margin">   </p>
+
+<a>For my other assignment, I worked with the Esp-32 Camera. I trained a neural network and used it as an API to make queries from the esp32 cam. </a>
+
+<p class="margin">   </p>
+
+<image style ="height: 500px;" src = "./doc.jpg"> </image>
+
+<p class="margin">   </p>
+
+<pre><code class="language-arduino">#include "esp_camera.h"
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <HTTPClient.h>
+
+// Camera pin config for AI Thinker
+#define PWDN_GPIO_NUM     32
+#define RESET_GPIO_NUM    -1
+#define XCLK_GPIO_NUM      0
+#define SIOD_GPIO_NUM     26
+#define SIOC_GPIO_NUM     27
+#define Y9_GPIO_NUM       35
+#define Y8_GPIO_NUM       34
+#define Y7_GPIO_NUM       39
+#define Y6_GPIO_NUM       36
+#define Y5_GPIO_NUM       21
+#define Y4_GPIO_NUM       19
+#define Y3_GPIO_NUM       18
+#define Y2_GPIO_NUM        5
+#define VSYNC_GPIO_NUM    25
+#define HREF_GPIO_NUM     23
+#define PCLK_GPIO_NUM     22
+
+const char* ssid = "MAKERSPACE";
+const char* password = "12345678";
+const char* serverUrl = "http://uno-card-api.onrender.com/predict";
+
+void startCamera();
+
+void setup() {
+  Serial.begin(115200);
+  delay(1000);
+
+  WiFi.begin(ssid, password);
+  Serial.print("Connecting to WiFi");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nConnected to WiFi");
+
+  startCamera();
+  delay(1000);
+
+  sendPhoto();
+}
+
+void loop() {
+}
+
+void startCamera() {
+  camera_config_t config;
+  config.ledc_channel = LEDC_CHANNEL_0;
+  config.ledc_timer = LEDC_TIMER_0;
+  config.pin_d0 = Y2_GPIO_NUM;
+  config.pin_d1 = Y3_GPIO_NUM;
+  config.pin_d2 = Y4_GPIO_NUM;
+  config.pin_d3 = Y5_GPIO_NUM;
+  config.pin_d4 = Y6_GPIO_NUM;
+  config.pin_d5 = Y7_GPIO_NUM;
+  config.pin_d6 = Y8_GPIO_NUM;
+  config.pin_d7 = Y9_GPIO_NUM;
+  config.pin_xclk = XCLK_GPIO_NUM;
+  config.pin_pclk = PCLK_GPIO_NUM;
+  config.pin_vsync = VSYNC_GPIO_NUM;
+  config.pin_href = HREF_GPIO_NUM;
+  config.pin_sscb_sda = SIOD_GPIO_NUM;
+  config.pin_sscb_scl = SIOC_GPIO_NUM;
+  config.pin_pwdn = PWDN_GPIO_NUM;
+  config.pin_reset = RESET_GPIO_NUM;
+  config.xclk_freq_hz = 20000000;
+  config.pixel_format = PIXFORMAT_JPEG;
+
+  if(psramFound()){
+    config.frame_size = FRAMESIZE_240X240;
+    config.jpeg_quality = 10;
+    config.fb_count = 1;
+  } else {
+    config.frame_size = FRAMESIZE_240X240;
+    config.jpeg_quality = 12;
+    config.fb_count = 1;
+  }
+
+  esp_err_t err = esp_camera_init(&config);
+  if (err != ESP_OK) {
+    Serial.printf("Camera init failed with error 0x%x\n", err);
+    return;
+  }
+
+  Serial.println("Camera initialized.");
+}
+
+void sendPhoto() {
+  camera_fb_t * fb = esp_camera_fb_get();
+  if (!fb) {
+    Serial.println("Camera capture failed");
+    return;
+  }
+
+  WiFiClientSecure client;
+  client.setInsecure();  
+
+  HTTPClient http;
+  http.begin(client, serverUrl);  
+  http.addHeader("Content-Type", "image/jpeg");
+  http.setTimeout(30000); 
+
+  Serial.println("Sending image to HTTPS API...");
+
+  int httpResponseCode = http.POST(fb->buf, fb->len);
+
+  Serial.printf("HTTP Response code: %d\n", httpResponseCode);
+  if (httpResponseCode > 0) {
+    Serial.println("Server response:");
+    Serial.println(http.getString());
+  } else {
+    Serial.printf("POST failed: %s\n", http.errorToString(httpResponseCode).c_str());
+  }
+
+  http.end();
+  esp_camera_fb_return(fb);
+}</code></pre>
 
 </div>
 </xmp>

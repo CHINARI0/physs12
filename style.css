@@ -79,6 +79,11 @@ nav {
   transition: 0.3s;
 }
 
+table {
+  background-color: #a3a3a3;
+  color: #EEE7E8;
+} 
+
 #btn {
   border: 3px outset #FFFFFF;
   border-radius: 40px;
